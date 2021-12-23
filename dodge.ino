@@ -1,12 +1,8 @@
 #include "global_variables.h"
 
-
-// If using the shield, all control and data lines are fixed, and
-// a simpler declaration can optionally be used:
-// Elegoo_TFTLCD tft;
 Elegoo_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
-
+//SETUP FUNCTIONS///////////////////////////////////////////////////
 //sets up the joystick hardware
 void joystickSetup() {
   pinMode(joystick->xPin, INPUT);
@@ -33,18 +29,7 @@ void displayStartScreen() {
 }
 
 
-//displays the player, a small square with its center at (x,y)
-void displayPlayer(struct Player* p) {
-  if (p->x != p->priorX || p->y != p->priorY) {
-    tft.fillRect(p->priorX - p->halfSize, p->priorY - p->halfSize, 
-    p->halfSize*2, p->halfSize*2, BLACK);
-  }
-  
-  tft.fillRect(p->x - p->halfSize, p->y - p->halfSize, 
-    p->halfSize*2, p->halfSize*2, p->color);
-}
-
-
+//INPUT FUNCTIONS//////////////////////////////////////////////////////////////
 void getJoystickStatus(struct Joystick* aJoystick) {
   aJoystick->x = analogRead(aJoystick->xPin);
   aJoystick->y = analogRead(aJoystick->yPin);
@@ -52,20 +37,7 @@ void getJoystickStatus(struct Joystick* aJoystick) {
 }
 
 
-//makes the game run at ~30 fps (not counting time it takes to display the pixels)
-void frameTimeDelay() {
-  static int currentTime = 0;
-  static int oldFrameTime = 0;
-
-  currentTime = micros();
-  //do nothing until 1/30th of a second has passed
-  while ((currentTime - oldFrameTime) < 30000) {
-    currentTime = micros();
-  }
-  oldFrameTime = micros();
-}
-
-
+//PROCESSING FUNCTIONS////////////////////////////////////////////////////////
 void pauseIfJoystickPressed(struct Joystick* j) {
   //if the user presses the button, game is paused
   if (j->buttonVal == 1) {
@@ -94,10 +66,9 @@ void pauseIfJoystickPressed(struct Joystick* j) {
     tft.print("1");
     delay(1000);
     tft.fillRect(0,0,6,8, BLACK);
-    
-    
   }
 }
+
 
 //moves player in 8 directions with a speed 
 void movePlayer(struct Player* p, struct Joystick* j) {
@@ -135,15 +106,142 @@ void movePlayer(struct Player* p, struct Joystick* j) {
   else if ((p->y + p->halfSize) > tft.height()) {
     p->y = tft.height() - p->halfSize;
   }
+}
+
+//generates an obstacle every so often with a random size and start position
+void generateObstacles() {
+
+  //if there are less than the number of allowable obstacles, generate a new one 
+  if (oVector.size() < MAX_OBSTACLES) {
+    Obstacle obstacle = {0,0,0,0, //x,y,priorX,priorY positions
+                       (float)random(MIN_OBS_SPEED * 100.0, MAX_OBS_SPEED * 100.0) * 0.01, //movement speedX
+                       0, //placeholder for movement speedY 
+                       random(SMALLEST_OBS_DIMENSION, LARGEST_OBS_DIMENSION), //halfsizeX
+                       random(SMALLEST_OBS_DIMENSION, LARGEST_OBS_DIMENSION), //halfsizeY
+                       GREEN};
+
+    int obsPosition = random(0, 4);  //determines which edge the obstacle will come from
+    
+    //based on which edge, initial position (x,y) and velocity (dX, dY) are set
+    switch (obsPosition) {
+      case 0:
+        //left side
+        obstacle.x = 0 - obstacle.hsX + 2;
+        obstacle.y = random(obstacle.hsY + 2, tft.height() - obstacle.hsY - 2);
+        break;
+      case 1:
+        //top side
+        obstacle.x = random(obstacle.hsX + 2, tft.width() - obstacle.hsX - 2);
+        obstacle.y = 0 - obstacle.hsY + 2;
+        (obstacle.dY) = (obstacle.dX);
+        obstacle.dX = 0;
+        break;
+      case 2:
+        //right side 
+        obstacle.x = tft.width() + obstacle.hsX - 2;
+        obstacle.y = random(obstacle.hsY + 2, tft.height() - obstacle.hsY - 2);
+        (obstacle.dX) *= -1; //moves to the left
+        break;
+      case 3:
+        //bottom side
+        obstacle.x = random(obstacle.hsX + 2, tft.width() - obstacle.hsX - 2);
+        obstacle.y = tft.height() + obstacle.hsY - 2;
+        (obstacle.dY) = (obstacle.dX) * -1;
+        obstacle.dX = 0;
+        break;
+    }
+    obstacle.priorX = obstacle.x;
+    obstacle.priorY = obstacle.y;
+
+    oVector.push_back(obstacle);
+  }
   
+}
+
+
+//moves all obstacles based on their movement speed
+void moveObstacles() {
+  if (oVector.size() != 0) {
+  
+    //moves each obstacle based on its movement speed
+    //and sets the prior value of x and y
+    for (int i = 0; i < oVector.size(); i++) {
+      oVector[i].priorX = oVector[i].x;
+      oVector[i].priorY = oVector[i].y;
+      
+      oVector[i].x += oVector[i].dX;
+      oVector[i].y += oVector[i].dY;
+    }
+  
+    //removes obstacle from array if it is out of bounds
+    for (int j = oVector.size() - 1; j >= 0; j--) {
+      if ((oVector[j].x > tft.width() + oVector[j].hsX + 2)
+          || (oVector[j].x < (-1 * oVector[j].hsX) - 2)
+          || (oVector[j].y > tft.height() + oVector[j].hsY + 2)
+          || (oVector[j].y < (-1 * oVector[j].hsY) - 2)) {
+            oVector.remove(j);
+          }   
+    }
+  }
+}
+
+
+//OUTPUT FUNCTIONS///////////////////////////////////////////////////////////
+//displays the player, a small square with its center at (x,y)
+void displayPlayer(struct Player* p) {
+  if (p->x != p->priorX || p->y != p->priorY) {
+    tft.fillRect(p->priorX - p->halfSize, p->priorY - p->halfSize, 
+    p->halfSize*2, p->halfSize*2, BLACK);
+  }
+  
+  tft.fillRect(p->x - p->halfSize, p->y - p->halfSize, 
+    p->halfSize*2, p->halfSize*2, p->color);
+}
+
+
+//makes the game run at ~30 fps (not counting time it takes to display the pixels)
+void frameTimeDelay() {
+  static int currentTime = 0;
+  static int oldFrameTime = 0;
+
+  currentTime = millis();
+  //do nothing until 1/30th of a second has passed
+  while ((currentTime - oldFrameTime) < 33) {
+    currentTime = millis();
+  }
+  oldFrameTime = millis();
+}
+
+
+//displays all obstacles on the screen
+void displayObstacles() {
+  for (int i = 0; i < oVector.size(); i++) {
+    tft.fillRect((int)(oVector[i].priorX - oVector[i].hsX), 
+    (int)(oVector[i].priorY - oVector[i].hsY),  
+    oVector[i].hsX * 2, 
+    oVector[i].hsY * 2, 
+    BLACK);
+
+    tft.drawRect(oVector[i].x - oVector[i].hsX, 
+    oVector[i].y - oVector[i].hsY,  
+    oVector[i].hsX * 2, 
+    oVector[i].hsY * 2, 
+    oVector[i].color);
+  }
 }
 
 
 
 
 
+
 void setup(void) {
+  //for debugging
   Serial.begin(9600);
+
+  //to use random numbers, make sure that pin is unconnected
+  randomSeed(analogRead(A13));
+
   
   joystickSetup();
   
@@ -153,16 +251,20 @@ void setup(void) {
 
 
 void loop(void) {
+  
+  for (int i = 0; i < oVector.size(); i++) {
+    Serial.print(oVector[i].hsX);
+    Serial.print(oVector[i].hsY);
+    Serial.print(" ");
+    Serial.print(oVector.size());
+  }
+  Serial.println();
+  
+  
   //INPUT//////////////////////////////////////////////////////////////
   getJoystickStatus(joystick);
 
 
-  //starting position is x and y between 500 and 524
-  //left is x > 1000
-  //up is y < 10
-  //right is x < 10
-  //down is y > 1000
-  //0 is not pressed in, 1 is pressed in 
 
 
 
@@ -172,7 +274,9 @@ void loop(void) {
   //PROCESSING/////////////////////////////////////////////////////////
   pauseIfJoystickPressed(joystick);
 
-  //moveObstacles();
+  //uses the global obstacles vector
+  generateObstacles();
+  moveObstacles();
 
   movePlayer(player, joystick);
 
@@ -186,6 +290,8 @@ void loop(void) {
   //OUTPUT//////////////////////////////////////////////////////////////
   frameTimeDelay();
   displayPlayer(player);
+  displayObstacles();
+
 
 
 

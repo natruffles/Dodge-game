@@ -1,5 +1,6 @@
 #include <Elegoo_GFX.h>    // Core graphics library
 #include <Elegoo_TFTLCD.h> // Hardware-specific library
+#include <Vector.h> //used for storing obstacle structures
 
 //USER CUSTOMIZABLE VALUES////////////////////////////////////////
 //defines IO pins for joystick
@@ -12,6 +13,13 @@
 #define PLAYER_COLOR 0x07E0 //green
 
 #define MOVEMENT_SPEED 2.0 //how many pixels the player moves per frame
+
+#define MAX_OBSTACLES 30 //maximum number of obstacles on the screen at once
+#define MIN_OBS_SPEED 0.5
+#define MAX_OBS_SPEED 1.5
+
+#define SMALLEST_OBS_DIMENSION 6
+#define LARGEST_OBS_DIMENSION 20
 
 //PROVIDED BY ELEGOO///////////////////////////////////////////////////////////////
 #define DRIVER_IDENTIFIER 0x9341  //TFT LCD driver that is included in the library
@@ -55,3 +63,12 @@ struct Player {
 
 struct Player aPlayer = {100, 100, 100, 100, HALF_SIZE, PLAYER_COLOR};
 Player* player = &aPlayer;
+
+//define obstacle struct which contains all information needed for an obstacle
+struct Obstacle {
+  float x, y, priorX, priorY, dX, dY;
+  int hsX, hsY, color; //can be a rectangle rather than just square
+};
+
+Obstacle oArray[MAX_OBSTACLES];
+Vector<Obstacle> oVector(oArray);
