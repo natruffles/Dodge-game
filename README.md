@@ -22,5 +22,12 @@ Scoring system implemented, reflects seconds that player has survived. \
 Score is displayed in top left during gameplay and during the death screen. \
 Explosion effect displays upon death. \
 The user is given the option to replay the game at the death screen. \
+\
+
+v0.4 - Smoothness fix + Customizability \
+Now allows the user to decide the framerate for the player and obstacles (want obstacle framerate to be lower to avoid lag). \
+Obstacle position can be updated less frequently than player position to avoid stuttering. \
+Obstacles can now move in any direction rather than along one axis. \
+Accessibility: Countdown timer size has been increased.
 
 
