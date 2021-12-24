@@ -9,17 +9,19 @@
 #define BUTTON_PIN 50
 #define HIGH_PIN 52
 
-#define HALF_SIZE 5 //player's width is 2 * half size
-#define PLAYER_COLOR 0x07E0 //green
+#define FRAME_RATE 30
+
+#define HALF_SIZE 10 //player's width is 2 * half size
+#define PLAYER_COLOR 0xFFFF //white
 
 #define MOVEMENT_SPEED 2.0 //how many pixels the player moves per frame
 
-#define MAX_OBSTACLES 30 //maximum number of obstacles on the screen at once
-#define MIN_OBS_SPEED 0.5
-#define MAX_OBS_SPEED 1.5
+#define MAX_OBSTACLES 5 //maximum number of obstacles on the screen at once
+#define MIN_OBS_SPEED 3.0
+#define MAX_OBS_SPEED 6.0
 
-#define SMALLEST_OBS_DIMENSION 6
-#define LARGEST_OBS_DIMENSION 20
+#define SMALLEST_OBS_DIMENSION 5
+#define LARGEST_OBS_DIMENSION 15
 
 //PROVIDED BY ELEGOO///////////////////////////////////////////////////////////////
 #define DRIVER_IDENTIFIER 0x9341  //TFT LCD driver that is included in the library
@@ -42,6 +44,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////
 
+const int MILLIS_DELAY = 1/((float)FRAME_RATE) * 1000.0;
 
 // ROYGBIV but indigo is cyan and violet is magenta
 #define COLORS [0xF800, 0xFBE0, 0xFFE0, 0x07E0, 0x001F, 0x07FF, 0xF81F]
@@ -72,3 +75,9 @@ struct Obstacle {
 
 Obstacle oArray[MAX_OBSTACLES];
 Vector<Obstacle> oVector(oArray);
+
+//stores if gameOver
+bool gameOver = false;
+
+//stores user score
+float score = 0;

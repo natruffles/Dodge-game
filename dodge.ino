@@ -175,14 +175,32 @@ void moveObstacles() {
   
     //removes obstacle from array if it is out of bounds
     for (int j = oVector.size() - 1; j >= 0; j--) {
-      if ((oVector[j].x > tft.width() + oVector[j].hsX + 2)
-          || (oVector[j].x < (-1 * oVector[j].hsX) - 2)
-          || (oVector[j].y > tft.height() + oVector[j].hsY + 2)
-          || (oVector[j].y < (-1 * oVector[j].hsY) - 2)) {
+      if ((oVector[j].x > tft.width() + oVector[j].hsX + 5)
+          || (oVector[j].x < (-1 * oVector[j].hsX) - 5)
+          || (oVector[j].y > tft.height() + oVector[j].hsY + 5)
+          || (oVector[j].y < (-1 * oVector[j].hsY) - 5)) {
             oVector.remove(j);
           }   
     }
   }
+}
+
+//returns true if there is a collision on any of the four sides
+bool rectVsRect(Player* p, Obstacle o) {
+  return (p->x + p->halfSize > o.x - o.hsX &&
+    p->x - p->halfSize < o.x + o.hsX &&
+    p->y + p->halfSize > o.y - o.hsY &&
+    p->y - p->halfSize < o.y + o.hsY);
+}
+
+//checks collision between player and any obstacle
+bool collisionDetect(Player* p) {
+  for (int i = 0; i < oVector.size(); i++) {
+    if (rectVsRect(p, oVector[i])) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -205,8 +223,8 @@ void frameTimeDelay() {
   static int oldFrameTime = 0;
 
   currentTime = millis();
-  //do nothing until 1/30th of a second has passed
-  while ((currentTime - oldFrameTime) < 33) {
+  //do nothing until MILLIS_DELAY time has passed (based on framerate)
+  while ((currentTime - oldFrameTime) < MILLIS_DELAY) {
     currentTime = millis();
   }
   oldFrameTime = millis();
@@ -231,6 +249,74 @@ void displayObstacles() {
 }
 
 
+//displays player death animation
+void deathAnimation(Player* p) {
+  for (int i = 0; i < 5; i++) {
+    for (int radius = 5; radius <= 15; radius += 2) {
+      tft.fillCircle(p->x, p->y, radius, RED);
+      delay(33);
+      tft.fillCircle(p->x, p->y, radius, BLACK);
+    }
+  }
+}
+
+
+//displays the score every time
+void displayScore(float playerScore) {
+  tft.fillRect(0,0,24,8,BLACK);
+  tft.drawRect(-1,-1,26,10, WHITE);
+  tft.setCursor(0,0);
+  tft.setTextSize(1);
+  tft.setTextColor(WHITE);
+  tft.print((int)playerScore);
+}
+
+void displayGameScore(float playerScore) {
+  tft.fillScreen(BLACK);
+  tft.setCursor(tft.width()/2-100, tft.height()/2-50);
+  tft.setTextColor(WHITE);
+  tft.setTextSize(2);
+  tft.print("Your score: ");
+  tft.print((int)playerScore);
+  tft.setCursor(tft.width()/2-100, tft.height()/2);
+  tft.print("Play again?");
+}
+
+
+void setUpForNextGame(Player* p, Joystick* j) {
+  oVector.clear();   //remove all obstacles
+  p->x = tft.width()/2; //set player to middle of screen
+  p->y = tft.height()/2;
+  randomSeed(analogRead(A13)); //new randoms
+
+  score = 0;
+  gameOver = false;
+
+  getJoystickStatus(j);
+  while (j->buttonVal == 0) {
+      getJoystickStatus(j);
+  }
+  tft.fillRect(0,0,6,8, BLACK);
+  tft.setCursor(0,0);
+  tft.setTextColor(WHITE);  tft.setTextSize(1);
+  tft.print("3");
+  delay(1000);
+  tft.fillRect(0,0,6,8, BLACK);
+  tft.setCursor(0,0);
+  tft.print("2");
+  delay(1000);
+  tft.fillRect(0,0,6,8, BLACK);
+  tft.setCursor(0,0);
+  tft.print("1");
+  delay(1000);
+  tft.fillRect(0,0,6,8, BLACK);
+
+  tft.fillScreen(BLACK);
+
+  
+  
+}
+
 
 
 
@@ -246,6 +332,11 @@ void setup(void) {
   joystickSetup();
   
   displayStartScreen();
+
+  //center the player in the screen
+  player->x = tft.width()/2;
+  player->y = tft.width()/2;
+  
   displayPlayer(player);
 }
 
@@ -280,6 +371,12 @@ void loop(void) {
 
   movePlayer(player, joystick);
 
+  if (collisionDetect(player)) {
+    gameOver = true;
+  }
+  else {
+    score += (float)1/FRAME_RATE;
+  }
 
 
 
@@ -287,10 +384,21 @@ void loop(void) {
 
 
 
-  //OUTPUT//////////////////////////////////////////////////////////////
-  frameTimeDelay();
-  displayPlayer(player);
-  displayObstacles();
+
+  //OUTPUT AND GAME OVER//////////////////////////////////////////////////////////////
+  if (!gameOver) {
+    frameTimeDelay();
+    displayPlayer(player);
+
+    displayObstacles();
+    displayScore(score);
+    
+  }
+  else {
+    deathAnimation(player);
+    displayGameScore(score);
+    setUpForNextGame(player, joystick);
+  }
 
 
 
