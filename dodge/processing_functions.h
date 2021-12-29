@@ -5,20 +5,20 @@ void movePlayer(struct Player* p, struct Joystick* j, Elegoo_TFTLCD * tft) {
   
   //move left
   if (j->x > 1000) {
-    (p->x) -= MOVEMENT_SPEED/FRAME_RATE;
+    (p->x) -= levels[lvl].pMovementSpeed/FRAME_RATE;
   }
   //or move right
   else if (j->x < 10) {
-    (p->x) += MOVEMENT_SPEED/FRAME_RATE;
+    (p->x) += levels[lvl].pMovementSpeed/FRAME_RATE;
   }
 
   //move down
   if (j->y > 1000) {
-    (p->y) += MOVEMENT_SPEED/FRAME_RATE;
+    (p->y) += levels[lvl].pMovementSpeed/FRAME_RATE;
   }
   //or move up
   else if (j->y < 10) {
-    (p->y) -= MOVEMENT_SPEED/FRAME_RATE;
+    (p->y) -= levels[lvl].pMovementSpeed/FRAME_RATE;
   }
 
   //makes sure that the player is inbounds
@@ -42,12 +42,12 @@ void generateObstacles(Elegoo_TFTLCD * tft) {
   static int genCounter = 0;
   
   //if there are less than the number of allowable obstacles, generate a new one 
-  if ((oVector.size() < MAX_OBSTACLES) && (genCounter >= OBS_GEN_RATE)) {
+  if ((oVector.size() < levels[lvl].maxObstacles) && (genCounter >= levels[lvl].obsGenRate)) {
     Obstacle obstacle = {0,0,0,0, //x,y,priorX,priorY positions
-                       (float)random(MIN_OBS_SPEED/FRAME_RATE * 100.0, MAX_OBS_SPEED/FRAME_RATE * 100.0) * 0.01, //movement speedX
+                       (float)random(levels[lvl].minObsSpeed/FRAME_RATE * 100.0, levels[lvl].maxObsSpeed/FRAME_RATE * 100.0) * 0.01, //movement speedX
                        0, //placeholder for movement speedY 
-                       random(SMALLEST_OBS_DIMENSION, LARGEST_OBS_DIMENSION), //halfsizeX
-                       random(SMALLEST_OBS_DIMENSION, LARGEST_OBS_DIMENSION), //halfsizeY
+                       random(levels[lvl].minObsDim, levels[lvl].maxObsDim), //halfsizeX
+                       random(levels[lvl].minObsDim, levels[lvl].maxObsDim), //halfsizeY
                        BLACK};
 
     int obsPosition = random(0, 4);  //determines which edge the obstacle will come from
@@ -90,7 +90,7 @@ void generateObstacles(Elegoo_TFTLCD * tft) {
 
     genCounter = 0;
   }
-  else if ((oVector.size() < MAX_OBSTACLES) && (genCounter < OBS_GEN_RATE)) {
+  else if ((oVector.size() < levels[lvl].maxObstacles) && (genCounter < levels[lvl].obsGenRate)) {
     genCounter++;
   }
 }

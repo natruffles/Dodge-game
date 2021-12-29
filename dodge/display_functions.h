@@ -2,7 +2,7 @@
 void displayPlayer(struct Player* p, Elegoo_TFTLCD * tft) {
   if (p->x != p->priorX || p->y != p->priorY) {
     tft->fillRect(p->priorX - p->halfSize, p->priorY - p->halfSize, 
-    p->halfSize*2, p->halfSize*2, COLORS[random(COLORS_SIZE)]);
+    p->halfSize*2, p->halfSize*2, levels[lvl].colors[random(0,NUM_COLORS)]);
   }
   
   tft->fillRect(p->x - p->halfSize, p->y - p->halfSize, 
@@ -30,7 +30,7 @@ void displayObstacles(Elegoo_TFTLCD * tft) {
       (int)(oVector[i].priorY - oVector[i].hsY),  
       oVector[i].hsX * 2, 
       oVector[i].hsY * 2, 
-      COLORS[random(COLORS_SIZE)]);
+      levels[lvl].colors[random(0,NUM_COLORS)]);
   
       tft->fillRect(oVector[i].x - oVector[i].hsX, 
       oVector[i].y - oVector[i].hsY,  
@@ -52,7 +52,7 @@ void deathAnimation(Player* p, Elegoo_TFTLCD * tft) {
   }
 }
 
-//displays the score every time
+//displays the score every frame
 void displayScore(float playerScore, Elegoo_TFTLCD * tft) {
   tft->fillRect(0,0,24,8,BLACK);
   tft->drawRect(-1,-1,26,10, WHITE);
@@ -62,13 +62,21 @@ void displayScore(float playerScore, Elegoo_TFTLCD * tft) {
   tft->print((int)playerScore);
 }
 
-void displayGameScore(float playerScore, Elegoo_TFTLCD * tft) {
-  tft->fillRect(tft->width()/2-102, tft->height()/2-60, 188, 86, BLACK);
+//when player loses, ask them to play again
+void displayEndScreen(float playerScore, Elegoo_TFTLCD * tft) {
+  tft->fillRect(tft->width()/2-102, tft->height()/2-60, 200, 86, BLACK);
   tft->setCursor(tft->width()/2-100, tft->height()/2-50);
   tft->setTextColor(WHITE);
   tft->setTextSize(2);
-  tft->print("Your score: ");
+  tft->print("Seconds left: ");
   tft->print((int)playerScore);
-  tft->setCursor(tft->width()/2-100, tft->height()/2);
-  tft->print("Play again?");
+  
+  if (score <= 0.0) {
+    tft->setCursor(tft->width()/2-75, tft->height()/2);
+    tft->print("You win!");
+  }
+  else {
+    tft->setCursor(tft->width()/2-100, tft->height()/2);
+    tft->print("Play again?");
+  }
 }

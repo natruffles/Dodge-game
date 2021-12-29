@@ -1,9 +1,3 @@
-/*
- * TODO:
- * connect a speaker and make it play a background track and a death sound 
- * make background rainbow instead of white
- */
-
 #include "global_variables.h"
 #include "setup_input_functions.h"
 #include "processing_functions.h"
@@ -21,7 +15,7 @@ void setup(void) {
 
   joystickSetup();
   
-  displayStartScreen(tft);
+  displayBootScreen(tft);
   setUpForNextGame(player, joystick, tft);
 }
 
@@ -39,11 +33,11 @@ void loop(void) {
 
   movePlayer(player, joystick, tft);
 
-  if (collisionDetect(player)) {
+  if ((collisionDetect(player)) || (score < 0)) {
     gameOver = true;
   }
   else {
-    score += (float)1/FRAME_RATE;
+    score -= (float)1/FRAME_RATE;
   }
 
 
@@ -58,9 +52,8 @@ void loop(void) {
   else {   //game is over
     freqCounter = 0; //forces obstacles to be displayed
     displayObstacles(tft);
-    
-    deathAnimation(player, tft);
-    displayGameScore(score, tft);
+    if (score > 0) {deathAnimation(player, tft);}
+    displayEndScreen(score, tft);
     setUpForNextGame(player, joystick, tft);
   }   
 }

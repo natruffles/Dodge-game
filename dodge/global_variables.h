@@ -12,18 +12,8 @@
 #define FRAME_RATE 24  //frame rate of the player
 #define OBS_FRAME_RATE 10    //frame rate of the obstacles, good idea to have this be less
 
-#define HALF_SIZE 6 //player's width is 2 * half size
 #define PLAYER_COLOR 0x0000 //black
 
-#define MOVEMENT_SPEED 100.0 //pixels per second
-
-#define MAX_OBSTACLES 10 //maximum number of obstacles on the screen at once
-#define OBS_GEN_RATE 3 //obstacles generated every x frames (player frames)
-#define MIN_OBS_SPEED 100.0
-#define MAX_OBS_SPEED 180.0
-
-#define SMALLEST_OBS_DIMENSION 4
-#define LARGEST_OBS_DIMENSION 12
 
 //PROVIDED BY ELEGOO///////////////////////////////////////////////////////////////
 #define DRIVER_IDENTIFIER 0x9341  //TFT LCD driver that is included in the library
@@ -69,7 +59,7 @@ struct Player {
   int halfSize, color;
 };
 
-struct Player aPlayer = {100, 100, 100, 100, HALF_SIZE, PLAYER_COLOR};
+struct Player aPlayer = {0,0,0,0,0, PLAYER_COLOR};
 Player* player = &aPlayer;
 
 //define obstacle struct which contains all information needed for an obstacle
@@ -78,7 +68,7 @@ struct Obstacle {
   int hsX, hsY, color; //can be a rectangle rather than just square
 };
 
-Obstacle oArray[MAX_OBSTACLES];
+Obstacle oArray[20]; //space in memory for 20 obstacles although that will not happen
 Vector<Obstacle> oVector(oArray);
 
 //stores if gameOver
@@ -86,3 +76,28 @@ bool gameOver = false;
 
 //stores user score
 float score = 0;
+
+#define NUM_COLORS 4
+struct Level {
+  int levelNum, //same as value in the array
+  pHalfSize, //half the width of the player
+  maxObstacles, //maximum number of obstacles on the screen at a given time
+  obsGenRate, //how many frames apart do obstacles spawn
+  minObsDim, //minimum dimension of an obstacle
+  maxObsDim, //maximum dimension of an obstacle
+  duration; //number of seconds before beating the level
+  float pMovementSpeed, //movement speed of player
+  minObsSpeed, //minimum obstacle speed along one axis
+  maxObsSpeed; //maximum obstacle speed along one axis
+  int colors[NUM_COLORS]; //different colors created during play, first element is bg color
+};
+
+//individual levels
+#define NUM_LEVELS 3
+Level customLevel = {0,0,0,0,0,0,0,0,0,0,{RED, RED, RED, RED}};
+Level level1 = {1,5,5,4,4,10,20,80.0,50.0,100.0, {BLUE,BLUE,BLUE,BLUE}};
+Level level2 = {2,5,6,4,6,12,20,80.0,55.0,105.0,{RED,RED,RED,RED}};
+Level levels[NUM_LEVELS] = {customLevel, level1, level2};
+
+//stores the current level number 
+int lvl = 0;

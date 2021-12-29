@@ -34,4 +34,11 @@ v0.5 - Colors + Bugfix
 * Introduced an obstacle generation rate to prevent lag at the beginning of the game, obstacles generated every x frames. 
 * Functions migrated from main .ino file to separate header files. Only "setup" and "loop" remain in main file.
 
+v0.6 - Levels
+* Level functionality added. 
+* The user can select which level to play on both the startup screen and the game over screen. 
+* Each level can have wildly different difficulties, as many aspects can be changed (such as player size, obstacle speed, number of obstacles, obstacle generation rate, etc.).
+* Each level can also have its own color scheme.
+* Many more levels will be added in the future.
+
 
