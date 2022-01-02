@@ -10,7 +10,9 @@
 #define HIGH_PIN 52
 
 #define FRAME_RATE 24  //frame rate of the player
-#define OBS_FRAME_RATE 10    //frame rate of the obstacles, good idea to have this be less
+#define OBS_FRAME_RATE 8    //frame rate of the obstacles, good idea to have this be less
+
+#define BOSS_DIFF 3 //from 1 (easy) to 4 (impossible)
 
 #define PLAYER_COLOR 0x0000 //black
 
@@ -89,15 +91,54 @@ struct Level {
   float pMovementSpeed, //movement speed of player
   minObsSpeed, //minimum obstacle speed along one axis
   maxObsSpeed; //maximum obstacle speed along one axis
+  bool hasBoss; //true if has a boss, false if not
   int colors[NUM_COLORS]; //different colors created during play, first element is bg color
 };
 
 //individual levels
-#define NUM_LEVELS 3
-Level customLevel = {0,0,0,0,0,0,0,0,0,0,{RED, RED, RED, RED}};
-Level level1 = {1,5,5,4,4,10,20,80.0,50.0,100.0, {BLUE,BLUE,BLUE,BLUE}};
-Level level2 = {2,5,6,4,6,12,20,80.0,55.0,105.0,{RED,RED,RED,RED}};
-Level levels[NUM_LEVELS] = {customLevel, level1, level2};
+#define NUM_LEVELS 6
+//pHalf,maxobs,ogenrate,mindim,maxdim,time,pmove,minospeed,maxospeed,colors
+Level customLevel = {0,5,5,4,4,10,20,80.0,50.0,100.0,false,{WHITE, WHITE, WHITE, WHITE}};
+Level level1 = {1,5,5,4,4,10,20,80.0,50.0,100.0, false,{GREEN, GREEN, GREEN, GREEN}};
+Level level2 = {2,5,6,4,6,12,20,80.0,55.0,105.0,false,{BLUE, BLUE, BLUE, BLUE}};
+Level level3 = {3,6,7,4,7,13,25,90.0,60.0,110.0,false,{RED,RED,RED,RED}};
+Level level4 = {4,5,5,4,10,15,30,90.0,80.0,130.0,false,{RED,RED,RED,MAGENTA}};
+Level bossLevel = {5,5,3,3,5,10,30,100.0,50.0,100.0,true,{MAGENTA,RED,RED,RED}};
+Level levels[NUM_LEVELS] = {customLevel, level1, level2, level3, level4, bossLevel};
 
 //stores the current level number 
 int lvl = 0;
+
+//used for selecting a number for level select, etc.
+struct customNumberSelect {
+  float value; //current value stored in the number
+  int xPos; //x position of number printed on screen
+  int yPos; //y position of number printed on screen
+  int minValue; //minimum value of number before looping round to maximum
+  int maxValue; //maximum value of number before looping round to minimum
+  int changeInValue; //how much does value change by when scrolling
+  int scrollDelay; //how many milliseconds does each scroll take
+};
+
+//when you select the level number
+struct customNumberSelect lvlSelect = {0, 172, 159, 0, NUM_LEVELS-1, 1, 250};
+
+//when you select the 9 different values when creating a custom level
+#define NUM_CUSTOM_NUMS 9
+customNumberSelect customLevelScreen[NUM_CUSTOM_NUMS] = {
+  {5, 195, 31, 1, 20, 1, 250}, //player Size
+  {5, 195, 56, 1, 20, 1, 250}, //max num obstacles
+  {4, 195, 81, 1, 10, 1, 250}, //obs gen time
+  {4, 195, 106, 1, 20, 1, 250}, //min obs length
+  {10, 195, 131, 1, 20, 1, 250}, //max obs length
+  {20, 195, 156, 5, 60, 1, 150}, //lvl duration
+  {80, 195, 181, 20, 200, 5, 150}, //player speed
+  {50, 195, 206, 10, 200, 5, 150}, //min obs speed
+  {100, 195, 231, 10, 200, 5, 150}, //max obs speed
+};
+
+struct Boss {
+  int halfSize;
+  float x, y, priorX, priorY;
+};
+struct Boss boss = {7,0,0,0,0}; //boss has a half size of 7

@@ -15,13 +15,11 @@ void setup(void) {
 
   joystickSetup();
   
-  displayBootScreen(tft);
+  displayBootScreen(tft); 
   setUpForNextGame(player, joystick, tft);
 }
 
-
 void loop(void) {
-  
   //INPUT//////////////////////////////////////////////////////////////
   getJoystickStatus(joystick);
   pauseIfJoystickPressed(joystick, tft);
@@ -30,9 +28,13 @@ void loop(void) {
   //uses the global obstacles vector
   generateObstacles(tft);
   moveObstacles(tft);
-
   movePlayer(player, joystick, tft);
 
+  if (levels[lvl].hasBoss) {
+    moveBoss(player, tft);
+    displayBoss(tft);
+  }
+  
   if ((collisionDetect(player)) || (score < 0)) {
     gameOver = true;
   }
@@ -46,6 +48,7 @@ void loop(void) {
     frameTimeDelay();
     displayPlayer(player, tft);
     displayObstacles(tft);
+    displayBoss(tft);
     displayScore(score, tft);
     
   }

@@ -41,4 +41,8 @@ v0.6 - Levels
 * Each level can also have its own color scheme.
 * Many more levels will be added in the future.
 
+v0.7 - Custom Level Selection + Boss
+* Created a custom level selection screen for level 0 where the user can adjust 9 different game parameters. This can be used for creation of main levels in the future. 
+* Added a boss to level 5, it follows the player around endlessly in a smooth motion and will kill the player if it ever stops. 
+
 

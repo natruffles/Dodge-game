@@ -9,6 +9,23 @@ void displayPlayer(struct Player* p, Elegoo_TFTLCD * tft) {
     p->halfSize*2, p->halfSize*2, p->color);
 }
 
+//displays the boss, a small square with its center at (x,y)
+void displayBoss(Elegoo_TFTLCD * tft) {
+  tft->fillRect(boss.priorX - boss.halfSize, boss.priorY - boss.halfSize, 
+  boss.halfSize*2, boss.halfSize*2, levels[lvl].colors[random(0,NUM_COLORS)]);
+  
+  tft->fillRect(boss.x - boss.halfSize, boss.y - boss.halfSize, 
+    boss.halfSize*2, boss.halfSize*2, player->color);
+
+  //make the face
+  tft->fillRect(boss.x - boss.halfSize + 2, boss.y - boss.halfSize + 2, 
+    2,2, WHITE);
+  tft->fillRect(boss.x + boss.halfSize - 4, boss.y - boss.halfSize + 2, 
+    2,2, WHITE);
+  tft->fillRect(boss.x - boss.halfSize + 2, boss.y + boss.halfSize - 4, 
+    2 * boss.halfSize - 4 ,2, WHITE); 
+}
+
 //makes the game run at a certain frame-rate by setting a timer buffer
 void frameTimeDelay() {
   static int currentTime = 0;

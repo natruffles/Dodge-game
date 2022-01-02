@@ -36,6 +36,22 @@ void movePlayer(struct Player* p, struct Joystick* j, Elegoo_TFTLCD * tft) {
   }
 }
 
+//moves the boss around the screen based on player location
+void moveBoss(Player* p, Elegoo_TFTLCD * tft) {
+  static float xDistance = 0;
+  static float yDistance = 0;
+  
+  boss.priorX = boss.x;
+  boss.priorY = boss.y;
+
+  xDistance = p->x - boss.x;
+  yDistance = p->y - boss.y;
+
+  boss.x += BOSS_DIFF/(float)FRAME_RATE * xDistance;
+  boss.y += BOSS_DIFF/(float)FRAME_RATE * yDistance;
+  
+}
+
 //generates an obstacle every so often with a random size and start position
 void generateObstacles(Elegoo_TFTLCD * tft) {
   //prevents obstacles from being generated too fast
@@ -135,12 +151,19 @@ bool rectVsRect(Player* p, Obstacle o) {
     p->y - p->halfSize < o.y + o.hsY);
 }
 
-//checks collision between player and any obstacle
+//checks collision between player and any obstacle or the boss
 bool collisionDetect(Player* p) {
   for (int i = 0; i < oVector.size(); i++) {
     if (rectVsRect(p, oVector[i])) {
       return true;
     }
   }
+  //checks if boss collision
+  if (p->x + p->halfSize > boss.x - boss.halfSize &&
+    p->x - p->halfSize < boss.x + boss.halfSize &&
+    p->y + p->halfSize > boss.y - boss.halfSize &&
+    p->y - p->halfSize < boss.y + boss.halfSize) {
+      return true;
+    }
   return false;
 }
