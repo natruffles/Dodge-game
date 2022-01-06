@@ -60,61 +60,8 @@ void displayBootScreen(Elegoo_TFTLCD * tft) {
 }
 
 //prototypes to use in the next function
-void getNextLvl(Joystick*, Elegoo_TFTLCD*);
-Level setCustomLvl(Joystick* , Elegoo_TFTLCD*);
-
-//sets up for next game depending on the level
-void setUpForNextGame(Player* p, Joystick* j, Elegoo_TFTLCD * tft) {
-  
-  oVector.clear();   //remove all obstacles
-  p->x = tft->width()/2; //set player to middle of screen
-  p->y = tft->height()/2;
-  randomSeed(analogRead(A13)); //new randoms
-
-  gameOver = false;
-  freqCounter = 0;
-
-  //draw box and arrows for level select
-  tft->drawRect(tft->width()/2 + 49, tft->height()/2 - 5, 16, 22, WHITE);
-  tft->setTextSize(1);
-  tft->setCursor(tft->width()/2 + 54, tft->height()/2 - 10);
-  tft->print("^");
-  tft->setCursor(tft->width()/2 + 54, tft->height()/2 + 17);
-  tft->print("v");
-
-  getNextLvl(j, tft);
-  if (lvl == 0) {
-    levels[0] = setCustomLvl(j, tft);  //level 0 is the custom level
-  }
-  
-  score = levels[lvl].duration;
-  player->halfSize = levels[lvl].pHalfSize;
-  if (levels[lvl].hasBoss) {
-    boss.x = 0; boss.y = 0;
-  }
-  
-  tft->fillRect(0,0,20,26, BLACK);
-  tft->setCursor(0,0);
-  tft->setTextColor(WHITE);  tft->setTextSize(3);
-  tft->print("3");
-  delay(1000);
-  tft->fillRect(0,0,20,26, BLACK);
-  tft->setCursor(0,0);
-  tft->print("2");
-  delay(1000);
-  tft->fillRect(0,0,20,26, BLACK);
-  tft->setCursor(0,0);
-  tft->print("1");
-  delay(1000);
-  tft->fillRect(0,0,20,26, BLACK);
-
-  //will get overwritten once score is displayed
-  tft->fillScreen(levels[lvl].colors[0]);
-  tft->setCursor(0,0); tft->setTextColor(BLACK);
-  tft->setTextSize(1);
-  tft->print("Load");
-  tft->setTextColor(WHITE);
-}
+//void getNextLvl(Joystick*, Elegoo_TFTLCD*);
+//Level setCustomLvl(Joystick* , Elegoo_TFTLCD*);
 
 //allows the user to scroll up and down to pick a level number
 void getNextLvl(Joystick* j, Elegoo_TFTLCD * tft) {
@@ -311,8 +258,90 @@ Level setCustomLvl(Joystick* j, Elegoo_TFTLCD * tft) {
   customLevelScreen[5].value,
   customLevelScreen[6].value,
   customLevelScreen[7].value,
-  customLevelScreen[8].value, false,
+  customLevelScreen[8].value, false,0,0,0,
   {levels[0].colors[0], levels[0].colors[1], 
   levels[0].colors[2], levels[0].colors[3]}
   };
+}
+
+//generates orbitals in the correct position relative to the boss based on how many there are
+void generateOrbiters(Elegoo_TFTLCD * tft) {
+  boss.orbiters[0].angularPosition = 0;
+  if ((levels[lvl].numOrbiters == 2) || (levels[lvl].numOrbiters == 4)) {
+    boss.orbiters[1].angularPosition = PI;
+  }
+  if (levels[lvl].numOrbiters == 4) {
+    boss.orbiters[2].angularPosition = PI/2;
+    boss.orbiters[3].angularPosition = 3 * PI/2;
+  }
+  else if (levels[lvl].numOrbiters == 3) {
+    boss.orbiters[1].angularPosition = 2 * PI/3;
+    boss.orbiters[2].angularPosition = 4 * PI/3;
+  }
+}
+
+//sets up for next game depending on the level
+void setUpForNextGame(Player* p, Joystick* j, Elegoo_TFTLCD * tft) {
+  
+  oVector.clear();   //remove all obstacles
+  p->x = tft->width()/2; //set player to middle of screen
+  p->y = tft->height()/2;
+  randomSeed(analogRead(A13)); //new randoms
+
+  gameOver = false;
+  freqCounter = 0;
+
+  //draw box and arrows for level select
+  tft->drawRect(tft->width()/2 + 49, tft->height()/2 - 5, 16, 22, WHITE);
+  tft->setTextSize(1);
+  tft->setCursor(tft->width()/2 + 54, tft->height()/2 - 10);
+  tft->print("^");
+  tft->setCursor(tft->width()/2 + 54, tft->height()/2 + 17);
+  tft->print("v");
+
+  getNextLvl(j, tft);
+  if (lvl == 0) {
+    levels[0] = setCustomLvl(j, tft);  //level 0 is the custom level
+  }
+  
+  score = levels[lvl].duration;
+  player->halfSize = levels[lvl].pHalfSize;
+  if (levels[lvl].hasBoss) {
+    //resets the position of boss and orbiters
+    boss.x = 0; boss.y = 0;
+    for (int i = 0; i < MAX_ORBITERS; i++) {
+      boss.orbiters[i].x = boss.orbiters[i].priorX = boss.x;
+      boss.orbiters[i].y = boss.orbiters[i].priorY = boss.y;
+    }
+    //if there are orbitals, generate their initial positions 
+    if (levels[lvl].numOrbiters > 0) {
+      generateOrbiters(tft);
+    }
+    
+  } else {
+    boss.x = -3* levels[lvl].bossHalfSize;
+    boss.y = -3* levels[lvl].bossHalfSize; //move boss off the screen
+  }
+  
+  tft->fillRect(0,0,20,26, BLACK);
+  tft->setCursor(0,0);
+  tft->setTextColor(WHITE);  tft->setTextSize(3);
+  tft->print("3");
+  delay(1000);
+  tft->fillRect(0,0,20,26, BLACK);
+  tft->setCursor(0,0);
+  tft->print("2");
+  delay(1000);
+  tft->fillRect(0,0,20,26, BLACK);
+  tft->setCursor(0,0);
+  tft->print("1");
+  delay(1000);
+  tft->fillRect(0,0,20,26, BLACK);
+
+  //will get overwritten once score is displayed
+  tft->fillScreen(levels[lvl].colors[0]);
+  tft->setCursor(0,0); tft->setTextColor(BLACK);
+  tft->setTextSize(1);
+  tft->print("Load");
+  tft->setTextColor(WHITE);
 }

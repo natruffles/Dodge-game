@@ -11,19 +11,36 @@ void displayPlayer(struct Player* p, Elegoo_TFTLCD * tft) {
 
 //displays the boss, a small square with its center at (x,y)
 void displayBoss(Elegoo_TFTLCD * tft) {
-  tft->fillRect(boss.priorX - boss.halfSize, boss.priorY - boss.halfSize, 
-  boss.halfSize*2, boss.halfSize*2, levels[lvl].colors[random(0,NUM_COLORS)]);
+  tft->fillRect(boss.priorX - levels[lvl].bossHalfSize, boss.priorY - levels[lvl].bossHalfSize, 
+  levels[lvl].bossHalfSize*2, levels[lvl].bossHalfSize*2, levels[lvl].colors[random(0,NUM_COLORS)]);
   
-  tft->fillRect(boss.x - boss.halfSize, boss.y - boss.halfSize, 
-    boss.halfSize*2, boss.halfSize*2, player->color);
+  tft->fillRect(boss.x - levels[lvl].bossHalfSize, boss.y - levels[lvl].bossHalfSize, 
+    levels[lvl].bossHalfSize*2, levels[lvl].bossHalfSize*2, player->color);
 
   //make the face
-  tft->fillRect(boss.x - boss.halfSize + 2, boss.y - boss.halfSize + 2, 
+  tft->fillRect(boss.x - levels[lvl].bossHalfSize + 2, boss.y - levels[lvl].bossHalfSize + 2, 
     2,2, WHITE);
-  tft->fillRect(boss.x + boss.halfSize - 4, boss.y - boss.halfSize + 2, 
+  tft->fillRect(boss.x + levels[lvl].bossHalfSize - 4, boss.y - levels[lvl].bossHalfSize + 2, 
     2,2, WHITE);
-  tft->fillRect(boss.x - boss.halfSize + 2, boss.y + boss.halfSize - 4, 
-    2 * boss.halfSize - 4 ,2, WHITE); 
+  tft->fillRect(boss.x - levels[lvl].bossHalfSize + 2, boss.y + levels[lvl].bossHalfSize - 4, 
+    2 * levels[lvl].bossHalfSize - 4 ,2, WHITE); 
+
+  //display orbitals
+  for (int i = 0; i < levels[lvl].numOrbiters; i++) {
+    //fill in spot where orbital once was
+    tft->fillRect(boss.orbiters[i].priorX - ORBITER_HSIZE_PROP*player->halfSize,  //xcoord of top left
+                  boss.orbiters[i].priorY - ORBITER_HSIZE_PROP*player->halfSize,  //ycoord of top left
+                  2*ORBITER_HSIZE_PROP*player->halfSize,
+                  2*ORBITER_HSIZE_PROP*player->halfSize,   //x and y dimensions are the same
+                  levels[lvl].colors[random(0,NUM_COLORS)]);
+
+    //display current position of each orbital
+    tft->fillRect(boss.orbiters[i].x - ORBITER_HSIZE_PROP*player->halfSize,  //xcoord of top left
+                  boss.orbiters[i].y - ORBITER_HSIZE_PROP*player->halfSize,  //ycoord of top left
+                  2*ORBITER_HSIZE_PROP*player->halfSize,
+                  2*ORBITER_HSIZE_PROP*player->halfSize,   //x and y dimensions are the same
+                  BLACK);
+  }
 }
 
 //makes the game run at a certain frame-rate by setting a timer buffer
@@ -71,12 +88,16 @@ void deathAnimation(Player* p, Elegoo_TFTLCD * tft) {
 
 //displays the score every frame
 void displayScore(float playerScore, Elegoo_TFTLCD * tft) {
-  tft->fillRect(0,0,24,8,BLACK);
-  tft->drawRect(-1,-1,26,10, WHITE);
-  tft->setCursor(0,0);
-  tft->setTextSize(1);
-  tft->setTextColor(WHITE);
-  tft->print((int)playerScore);
+  static int oldScore = 0;
+  if (oldScore != (int)playerScore) {
+    tft->fillRect(0,0,24,16,BLACK);
+    tft->drawRect(-1,-1,26,18, WHITE);
+    tft->setCursor(0,0);
+    tft->setTextSize(2);
+    tft->setTextColor(WHITE);
+    tft->print((int)playerScore);
+    oldScore = (int)playerScore; //causes display to only be updated every second
+  }
 }
 
 //when player loses, ask them to play again

@@ -48,7 +48,9 @@ void loop(void) {
     frameTimeDelay();
     displayPlayer(player, tft);
     displayObstacles(tft);
-    displayBoss(tft);
+    if (levels[lvl].hasBoss) {
+      displayBoss(tft);
+    }
     displayScore(score, tft);
     
   }

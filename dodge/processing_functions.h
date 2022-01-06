@@ -47,9 +47,18 @@ void moveBoss(Player* p, Elegoo_TFTLCD * tft) {
   xDistance = p->x - boss.x;
   yDistance = p->y - boss.y;
 
-  boss.x += BOSS_DIFF/(float)FRAME_RATE * xDistance;
-  boss.y += BOSS_DIFF/(float)FRAME_RATE * yDistance;
-  
+  boss.x += levels[lvl].bossDiff/(float)FRAME_RATE * xDistance / 3;
+  boss.y += levels[lvl].bossDiff/(float)FRAME_RATE * yDistance / 3;
+
+  for (int i = 0; i < levels[lvl].numOrbiters; i++) {
+    boss.orbiters[i].priorX = boss.orbiters[i].x;
+    boss.orbiters[i].priorY = boss.orbiters[i].y;
+    boss.orbiters[i].angularPosition += ORBITER_ROT_VELOCITY/(float)FRAME_RATE;
+    boss.orbiters[i].x = boss.x + (levels[lvl].bossHalfSize * ORBITER_DISTANCE + levels[lvl].bossHalfSize * ORBITER_HSIZE_PROP)
+      * cos(boss.orbiters[i].angularPosition);
+    boss.orbiters[i].y = boss.y + (levels[lvl].bossHalfSize * ORBITER_DISTANCE + levels[lvl].bossHalfSize * ORBITER_HSIZE_PROP)
+      * sin(boss.orbiters[i].angularPosition);
+  } 
 }
 
 //generates an obstacle every so often with a random size and start position
@@ -159,11 +168,20 @@ bool collisionDetect(Player* p) {
     }
   }
   //checks if boss collision
-  if (p->x + p->halfSize > boss.x - boss.halfSize &&
-    p->x - p->halfSize < boss.x + boss.halfSize &&
-    p->y + p->halfSize > boss.y - boss.halfSize &&
-    p->y - p->halfSize < boss.y + boss.halfSize) {
+  if (p->x + p->halfSize > boss.x - levels[lvl].bossHalfSize &&
+    p->x - p->halfSize < boss.x + levels[lvl].bossHalfSize &&
+    p->y + p->halfSize > boss.y - levels[lvl].bossHalfSize &&
+    p->y - p->halfSize < boss.y + levels[lvl].bossHalfSize) {
       return true;
-    }
+   }
+   //checks if orbiter collision
+   for (int i = 0; i < levels[lvl].numOrbiters; i++) {
+      if (p->x + p->halfSize > boss.orbiters[i].x - ORBITER_HSIZE_PROP*p->halfSize &&
+      p->x - p->halfSize < boss.orbiters[i].x + ORBITER_HSIZE_PROP*p->halfSize &&
+      p->y + p->halfSize > boss.orbiters[i].y - ORBITER_HSIZE_PROP*p->halfSize &&
+      p->y - p->halfSize < boss.orbiters[i].y + ORBITER_HSIZE_PROP*p->halfSize) {
+        return true;
+     }
+   }
   return false;
 }

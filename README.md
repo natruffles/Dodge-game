@@ -45,4 +45,8 @@ v0.7 - Custom Level Selection + Boss
 * Created a custom level selection screen for level 0 where the user can adjust 9 different game parameters. This can be used for creation of main levels in the future. 
 * Added a boss to level 5, it follows the player around endlessly in a smooth motion and will kill the player if it ever stops. 
 
+v0.8 - Boss Additions + Full Level Selection
+* There are 9 different main levels of increasing difficulties, as well as the custom level.
+* Some boss levels have orbiter functionality, small objects that move around the boss in a circle that can also kill the player. 
+* One bug that needs to be fixed in the future is that levels sometimes freeze for about 10 seconds on load before becoming playable. 
 

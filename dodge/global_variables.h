@@ -9,10 +9,12 @@
 #define BUTTON_PIN 50
 #define HIGH_PIN 52
 
-#define FRAME_RATE 24  //frame rate of the player
-#define OBS_FRAME_RATE 8    //frame rate of the obstacles, good idea to have this be less
+#define ORBITER_HSIZE_PROP 1
+#define ORBITER_DISTANCE 2
+#define ORBITER_ROT_VELOCITY 2 //1-5 reasonably
 
-#define BOSS_DIFF 3 //from 1 (easy) to 4 (impossible)
+#define FRAME_RATE 24  //frame rate of the player, boss, orbiters
+#define OBS_FRAME_RATE 8    //frame rate of the obstacles, good idea to have this be less
 
 #define PLAYER_COLOR 0x0000 //black
 
@@ -27,14 +29,19 @@
 #define LCD_RESET A4 // Can alternately just connect to Arduino's reset pin
 
 // Assign human-readable names to some common 16-bit color values:
-#define  BLACK   0x0000
-#define BLUE    0x001F
+#define BLACK   0x0000
 #define RED     0xF800
+#define DARK_RED 0xE000
+#define YELLOW  0xFFE0
+#define GOLD     0xFE80
+#define ORANGE  0xFC60
 #define GREEN   0x07E0
+#define DARK_GREEN 0x0601
+#define BLUE    0x001F
 #define CYAN    0x07FF
 #define MAGENTA 0xF81F
-#define YELLOW  0xFFE0
 #define WHITE   0xFFFF
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,19 +99,26 @@ struct Level {
   minObsSpeed, //minimum obstacle speed along one axis
   maxObsSpeed; //maximum obstacle speed along one axis
   bool hasBoss; //true if has a boss, false if not
+  int bossHalfSize; //size of the boss
+  int bossDiff; //higher number = boss follows closer, 10 is reasonable max
+  int numOrbiters; //number of small obstacles orbiting the boss
   int colors[NUM_COLORS]; //different colors created during play, first element is bg color
 };
 
 //individual levels
-#define NUM_LEVELS 6
+#define NUM_LEVELS 10
 //pHalf,maxobs,ogenrate,mindim,maxdim,time,pmove,minospeed,maxospeed,colors
-Level customLevel = {0,5,5,4,4,10,20,80.0,50.0,100.0,false,{WHITE, WHITE, WHITE, WHITE}};
-Level level1 = {1,5,5,4,4,10,20,80.0,50.0,100.0, false,{GREEN, GREEN, GREEN, GREEN}};
-Level level2 = {2,5,6,4,6,12,20,80.0,55.0,105.0,false,{BLUE, BLUE, BLUE, BLUE}};
-Level level3 = {3,6,7,4,7,13,25,90.0,60.0,110.0,false,{RED,RED,RED,RED}};
-Level level4 = {4,5,5,4,10,15,30,90.0,80.0,130.0,false,{RED,RED,RED,MAGENTA}};
-Level bossLevel = {5,5,3,3,5,10,30,100.0,50.0,100.0,true,{MAGENTA,RED,RED,RED}};
-Level levels[NUM_LEVELS] = {customLevel, level1, level2, level3, level4, bossLevel};
+Level customLevel = {0,5,5,4,4,10,20,80.0,50.0,100.0,false,0,0,0,{WHITE, WHITE, WHITE, WHITE}};
+Level level1 = {1,5,5,4,4,10,20,80.0,50.0,100.0, false,0,0,0,{GREEN, DARK_GREEN, DARK_GREEN, GREEN}};
+Level level2 = {2,5,6,4,6,12,20,80.0,55.0,105.0,false,0,0,0,{GOLD, YELLOW, GOLD, ORANGE}};
+Level level3 = {3,6,7,4,7,13,25,90.0,60.0,110.0,false,0,0,0,{BLUE,CYAN,CYAN,BLUE}};
+Level level4 = {4,5,5,4,10,15,30,90.0,80.0,130.0,false,0,0,0,{MAGENTA,RED,MAGENTA,MAGENTA}};
+Level level5 = {5,5,3,3,5,10,30,100.0,50.0,100.0,true,8,2,0,{RED,DARK_RED,RED,MAGENTA}};
+Level level6 = {6,5,5,3,7,12,30,100.0,40.0,120.0,true,10,4,0,{DARK_RED,RED,MAGENTA,DARK_RED}};
+Level level7 = {7,6,5,4,7,12,30,90.0,40.0,120.0,true,10,2,4,{WHITE,YELLOW,GOLD,WHITE}};
+Level level8 = {8,6,10,2,5,12,30,100.0,70.0,160.0,false,0,0,0,{GREEN,DARK_GREEN,GREEN,GOLD}};
+Level level9 = {9,6,6,3,7,12,30,80.0,40.0,80.0,true,12,2,3,{MAGENTA,RED,RED,DARK_RED}};
+Level levels[NUM_LEVELS] = {customLevel, level1, level2, level3, level4, level5, level6, level7, level8, level9};
 
 //stores the current level number 
 int lvl = 0;
@@ -137,8 +151,13 @@ customNumberSelect customLevelScreen[NUM_CUSTOM_NUMS] = {
   {100, 195, 231, 10, 200, 5, 150}, //max obs speed
 };
 
-struct Boss {
-  int halfSize;
-  float x, y, priorX, priorY;
+#define MAX_ORBITERS 4
+struct Orbiter {
+  float x, y, priorX, priorY, angularPosition;
 };
-struct Boss boss = {7,0,0,0,0}; //boss has a half size of 7
+
+struct Boss {
+  float x, y, priorX, priorY; //things like size, speed are level specific
+  Orbiter orbiters[MAX_ORBITERS]; //currently 4
+};
+struct Boss boss = {0,0,0,0,{{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}}}; 
